@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - QuizMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    
+    <!-- Category Header -->
+    <div class="card" style="text-align: center; margin-bottom: 2rem; background: linear-gradient(135deg, {{ category.color }}20 0%, {{ category.color }}10 100%); border: 2px solid {{ category.color }}40;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">{{ category.icon }}</div>
+        <h1 style="margin-bottom: 1rem; color: {{ category.color }};">
+            {{ category.name }}
+        </h1>
+        <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">
+            {{ category.description }}
+        </p>
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>📊</span>
+                <span>{{ quizzes|length }} Quizzes Available</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>❓</span>
+                <span>{{ quizzes|sum(attribute='question_count') }} Total Questions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem; flex-wrap: wrap;">
+        <button onclick="startRandomQuizInCategory()" class="btn btn-primary">
+            🎲 Random Quiz from {{ category.name }}
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Quizzes Grid -->
+    {% if quizzes %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+        {% for quiz in quizzes %}
+        <div class="quiz-card" onclick="startQuiz({{ quiz.id }})">
+            <div class="quiz-header">
+                <div>
+                    <h3 class="quiz-title">{{ quiz.title }}</h3>
+                    <p style="color: #666; margin: 0; font-size: 0.9rem;">{{ quiz.description }}</p>
+                </div>
+                <span class="quiz-difficulty difficulty-{{ quiz.difficulty.lower() }}">
+                    {{ quiz.difficulty }}
+                </span>
+            </div>
+            
+            <div class="quiz-meta">
+                <span>❓ {{ quiz.question_count }} questions</span>
+                <span>⏱️ {{ quiz.time_limit // 60 }} minutes</span>
+                <span>🎯 {{ quiz.plays_count or 0 }} plays</span>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: center;">
+                <button class="btn btn-primary" style="width: 100%;">
+                    🚀 Start Quiz
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">📝</div>
+        <h2 style="color: #666; margin-bottom: 1rem;">No Quizzes Available</h2>
+        <p style="color: #999; margin-bottom: 2rem;">
+            There are no quizzes in this category yet. Check back later!
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            ← Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Category Stats -->
+    {% if quizzes %}
+    <div class="card" style="margin: 3rem 0; text-align: center;">
+        <h2 style="margin-bottom: 2rem; color: var(--dark);">📈 Category Statistics</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ quizzes|length }}</div>
+                <div class="stat-label">📊 Total Quizzes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ quizzes|sum(attribute='question_count') }}</div>
+                <div class="stat-label">❓ Total Questions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ quizzes|sum(attribute='plays_count') or 0 }}</div>
+                <div class="stat-label">🎮 Total Plays</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.1f"|format(quizzes|sum(attribute='average_score')/quizzes|length if quizzes|length > 0 else 0) }}</div>
+                <div class="stat-label">⭐ Avg Score</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Difficulty Distribution -->
+    {% if quizzes %}
+    <div class="card" style="margin: 3rem 0;">
+        <h2 style="margin-bottom: 2rem; color: var(--dark); text-align: center;">🎯 Difficulty Levels</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            {% set easy_count = quizzes|selectattr('difficulty', 'equalto', 'Easy')|list|length %}
+            {% set medium_count = quizzes|selectattr('difficulty', 'equalto', 'Medium')|list|length %}
+            {% set hard_count = quizzes|selectattr('difficulty', 'equalto', 'Hard')|list|length %}
+            
+            <div style="text-align: center; padding: 1.5rem; background: rgba(40, 167, 69, 0.1); border-radius: 10px; border-left: 4px solid #28a745;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🟢</div>
+                <h3 style="color: #28a745; margin-bottom: 0.5rem;">Easy</h3>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">{{ easy_count }}</div>
+                <div style="font-size: 0.8rem; color: #666;">{{ "%.0f"|format((easy_count / quizzes|length * 100) if quizzes|length > 0 else 0) }}% of quizzes</div>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border-left: 4px solid #ffc107;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🟡</div>
+                <h3 style="color: #856404; margin-bottom: 0.5rem;">Medium</h3>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #856404;">{{ medium_count }}</div>
+                <div style="font-size: 0.8rem; color: #666;">{{ "%.0f"|format((medium_count / quizzes|length * 100) if quizzes|length > 0 else 0) }}% of quizzes</div>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem; background: rgba(220, 53, 69, 0.1); border-radius: 10px; border-left: 4px solid #dc3545;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔴</div>
+                <h3 style="color: #721c24; margin-bottom: 0.5rem;">Hard</h3>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #721c24;">{{ hard_count }}</div>
+                <div style="font-size: 0.8rem; color: #666;">{{ "%.0f"|format((hard_count / quizzes|length * 100) if quizzes|length > 0 else 0) }}% of quizzes</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function startQuiz(quizId) {
+    QuizMaster.showNotification('Loading quiz...', 'info');
+    setTimeout(() => {
+        window.location.href = `/quiz/${quizId}`;
+    }, 500);
+}
+
+function startRandomQuizInCategory() {
+    const quizzes = {{ quizzes|map(attribute='id')|list|tojson }};
+    if (quizzes.length > 0) {
+        const randomQuizId = quizzes[Math.floor(Math.random() * quizzes.length)];
+        QuizMaster.showNotification('Selecting random quiz...', 'info');
+        setTimeout(() => {
+            window.location.href = `/quiz/${randomQuizId}`;
+        }, 1000);
+    } else {
+        QuizMaster.showNotification('No quizzes available in this category', 'warning');
+    }
+}
+
+// Add hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.quiz-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+            this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+        });
+    });
+});
+</script>
+{% endblock %}

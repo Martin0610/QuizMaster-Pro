@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Join QuizMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0; min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 500px; width: 100%; text-align: center;">
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🎮</div>
+            <h1 style="background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem;">
+                Welcome to QuizMaster Pro
+            </h1>
+            <p style="color: #666; font-size: 1.1rem;">
+                Join the ultimate quiz experience
+            </p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div style="display: flex; margin-bottom: 2rem; background: rgba(0,0,0,0.05); border-radius: 50px; padding: 0.3rem;">
+            <button class="auth-tab active" data-form="login-form" style="flex: 1; padding: 0.8rem; border: none; background: var(--primary); color: white; border-radius: 50px; font-weight: 600; cursor: pointer; transition: var(--transition);">
+                🔐 Login
+            </button>
+            <button class="auth-tab" data-form="register-form" style="flex: 1; padding: 0.8rem; border: none; background: transparent; color: var(--dark); border-radius: 50px; font-weight: 600; cursor: pointer; transition: var(--transition);">
+                📝 Register
+            </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form active" method="POST" action="{{ url_for('auth') }}">
+            <input type="hidden" name="action" value="login">
+            
+            <div class="form-group">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">👤</span>
+                    <input type="text" name="username" class="form-control" required placeholder="Username" style="padding-left: 3rem;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">🔒</span>
+                    <input type="password" name="password" class="form-control" required placeholder="Password" style="padding-left: 3rem;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                🚀 Start Playing
+            </button>
+
+            <p style="margin-top: 1.5rem; color: #666; font-size: 0.9rem;">
+                New to QuizMaster Pro? Click Register above to create your account!
+            </p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form" method="POST" action="{{ url_for('auth') }}" style="display: none;">
+            <input type="hidden" name="action" value="register">
+            
+            <div class="form-group">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">👤</span>
+                    <input type="text" name="username" class="form-control" required placeholder="Choose a username" style="padding-left: 3rem;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">📧</span>
+                    <input type="email" name="email" class="form-control" required placeholder="Your email address" style="padding-left: 3rem;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">🔒</span>
+                    <input type="password" name="password" class="form-control" required placeholder="Create a password" style="padding-left: 3rem;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                🎯 Create Account & Start
+            </button>
+
+            <p style="margin-top: 1.5rem; color: #666; font-size: 0.9rem;">
+                Already have an account? Click Login above to sign in!
+            </p>
+        </form>
+
+        <!-- Features Preview -->
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.1);">
+            <p style="color: #666; margin-bottom: 1rem; font-weight: 600;">What you'll get:</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🧠</span>
+                    <span style="font-size: 0.9rem;">1000+ Questions</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🏆</span>
+                    <span style="font-size: 0.9rem;">Achievements</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>📊</span>
+                    <span style="font-size: 0.9rem;">Progress Tracking</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🎨</span>
+                    <span style="font-size: 0.9rem;">Beautiful UI</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-form {
+    display: none;
+}
+.auth-form.active {
+    display: block !important;
+}
+
+.auth-tab.active {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+.auth-tab:not(.active) {
+    background: transparent !important;
+    color: var(--dark) !important;
+}
+
+.auth-tab:not(.active):hover {
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+</style>
+
+<script>
+// Tab switching for auth forms
+document.addEventListener('DOMContentLoaded', function() {
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form');
+    
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetFormId = this.getAttribute('data-form');
+            
+            // Remove active from all tabs and forms
+            authTabs.forEach(t => t.classList.remove('active'));
+            authForms.forEach(f => f.classList.remove('active'));
+            
+            // Add active to clicked tab and target form
+            this.classList.add('active');
+            document.getElementById(targetFormId).classList.add('active');
+        });
+    });
+
+    // Form submission effects
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 3 seconds if no redirect
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 3000);
+        });
+    });
+});
+</script>
+{% endblock %}

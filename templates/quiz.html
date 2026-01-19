@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} - QuizMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0; max-width: 800px;">
+    
+    <!-- Quiz Header -->
+    <div class="card" style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">{{ quiz.category_icon }}</div>
+        <h1 style="margin-bottom: 0.5rem; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            {{ quiz.title }}
+        </h1>
+        <p style="color: #666; margin-bottom: 1rem;">{{ quiz.description }}</p>
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>📚</span>
+                <span>{{ quiz.category_name }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>⚡</span>
+                <span>{{ quiz.difficulty }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>⏱️</span>
+                <span id="question-timer" style="font-weight: bold; color: #28a745;">30s</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="background: rgba(0,0,0,0.1); border-radius: 50px; height: 8px; margin-bottom: 2rem; overflow: hidden;">
+        <div id="progress-bar" style="background: var(--primary); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 50px;"></div>
+    </div>
+
+    <!-- Question Card -->
+    <div id="question-card" class="card" style="min-height: 400px; display: flex; flex-direction: column; justify-content: center;">
+        <div id="question-content">
+            <!-- Question will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Quiz Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+        <div>
+            <span id="question-counter" style="color: #666; font-weight: 500;">Question 1 of {{ questions|length }}</span>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button id="prev-btn" class="btn btn-secondary" onclick="previousQuestion()" style="display: none;">
+                ← Previous
+            </button>
+            <button id="next-btn" class="btn btn-primary" onclick="console.log('Next button clicked'); nextQuestion();" disabled>
+                Next →
+            </button>
+            <button id="finish-btn" class="btn btn-success" onclick="finishQuiz()" style="display: none;">
+                🏁 Finish Quiz
+            </button>
+        </div>
+    </div>
+
+    <!-- Score Display -->
+    <div id="score-display" style="position: fixed; top: 100px; right: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); padding: 1rem; border-radius: 15px; box-shadow: var(--shadow); z-index: 1000;">
+        <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                <span id="current-score">0</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #666;">Points</div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.option-btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    margin: 0.5rem 0;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 15px;
+    background: rgba(255,255,255,0.95);
+    color: #2c3e50;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 500;
+}
+
+.option-btn:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.option-btn.selected {
+    border-color: #667eea;
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.option-btn.correct {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    font-weight: bold;
+}
+
+.option-btn.incorrect {
+    border-color: #dc3545;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    font-weight: bold;
+}
+
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.question-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    color: var(--dark);
+}
+
+.explanation {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+    display: none;
+}
+
+.explanation.show {
+    display: block;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+let currentQuestion = 0;
+let totalQuestions = {{ questions|length }};
+let score = 0;
+let selectedAnswer = null;
+let questionTimeLeft = 30; // 30 seconds per question
+let questionTimerInterval;
+let questions = [];
+
+// Start quiz
+document.addEventListener('DOMContentLoaded', function() {
+    loadQuestion(0);
+});
+
+function startQuestionTimer() {
+    questionTimeLeft = 30;
+    updateQuestionTimerDisplay();
+    
+    questionTimerInterval = setInterval(() => {
+        questionTimeLeft--;
+        updateQuestionTimerDisplay();
+        
+        if (questionTimeLeft <= 0) {
+            clearInterval(questionTimerInterval);
+            // Auto-submit with no answer
+            if (!selectedAnswer) {
+                QuizMaster.showNotification('Time\'s up! Moving to next question...', 'warning');
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+            }
+        }
+    }, 1000);
+}
+
+function updateQuestionTimerDisplay() {
+    const timerElement = document.getElementById('question-timer');
+    timerElement.textContent = `${questionTimeLeft}s`;
+    
+    // Change color based on time left
+    if (questionTimeLeft <= 5) {
+        timerElement.style.color = '#dc3545'; // Red
+        timerElement.style.animation = 'pulse 0.5s infinite';
+    } else if (questionTimeLeft <= 10) {
+        timerElement.style.color = '#ffc107'; // Yellow
+        timerElement.style.animation = 'none';
+    } else {
+        timerElement.style.color = '#28a745'; // Green
+        timerElement.style.animation = 'none';
+    }
+}
+
+async function loadQuestion(questionNum) {
+    console.log(`Loading question ${questionNum}`);
+    
+    try {
+        const url = `/quiz/question/${questionNum}`;
+        console.log(`Making request to: ${url}`);
+        
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Question data received:', data);
+        
+        if (data.error) {
+            console.error('Error loading question:', data.error);
+            QuizMaster.showNotification(data.error, 'error');
+            return;
+        }
+        
+        displayQuestion(data);
+        updateProgress(data.progress);
+        updateQuestionCounter(data.question_num, data.total_questions);
+        startQuestionTimer(); // Start timer for this question
+        
+        // Reset selected answer
+        selectedAnswer = null;
+        
+    } catch (error) {
+        console.error('Error loading question:', error);
+        QuizMaster.showNotification('Error loading question: ' + error.message, 'error');
+    }
+}
+
+function displayQuestion(data) {
+    const question = data.question;
+    const options = [question.option_a, question.option_b, question.option_c, question.option_d];
+    
+    console.log('Displaying question:', question.question_text);
+    
+    const questionHTML = `
+        <div class="question-text">
+            ${data.question_num}. ${question.question_text}
+        </div>
+        <div class="options">
+            ${options.map((option, index) => `
+                <button class="option-btn" onclick="selectAnswer('${option.replace(/'/g, "\\'")}', this)">
+                    <span style="font-weight: bold; color: #667eea; background: rgba(102, 126, 234, 0.1); padding: 0.3rem 0.6rem; border-radius: 50%; min-width: 30px; text-align: center;">${String.fromCharCode(65 + index)}</span>
+                    <span style="flex: 1;">${option}</span>
+                </button>
+            `).join('')}
+        </div>
+        <div id="explanation" class="explanation">
+            <strong>💡 Explanation:</strong>
+            <p id="explanation-text"></p>
+        </div>
+    `;
+    
+    document.getElementById('question-content').innerHTML = questionHTML;
+    
+    // Reset all state
+    selectedAnswer = null;
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = 'Next →';
+    nextBtn.style.display = 'block';
+    
+    // Hide explanation
+    const explanation = document.getElementById('explanation');
+    if (explanation) {
+        explanation.classList.remove('show');
+    }
+    
+    console.log('Question displayed successfully');
+}
+
+function selectAnswer(answer, button) {
+    console.log('Answer selected:', answer);
+    
+    // Remove previous selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Select current answer
+    button.classList.add('selected');
+    selectedAnswer = answer;
+    document.getElementById('next-btn').disabled = false;
+    
+    if (QuizMaster.playSuccessSound) {
+        QuizMaster.playSuccessSound();
+    }
+    
+    console.log('Answer selection complete, Next button enabled');
+}
+
+async function nextQuestion() {
+    console.log('nextQuestion() called');
+    
+    // Clear question timer
+    clearInterval(questionTimerInterval);
+    
+    // If no answer selected and time ran out, submit empty answer
+    if (!selectedAnswer) {
+        selectedAnswer = ''; // Empty answer
+        console.log('No answer selected, submitting empty answer');
+    }
+    
+    // Disable the next button to prevent double-clicking
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = '<span class="spinner"></span> Loading...';
+    
+    console.log(`Submitting answer: "${selectedAnswer}" for question ${currentQuestion}`);
+    
+    // Submit answer
+    try {
+        const response = await fetch('/quiz/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                answer: selectedAnswer,
+                question_num: currentQuestion
+            })
+        });
+        
+        console.log('Submit response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Submit result:', result);
+        
+        if (result.error) {
+            console.error('Submit error:', result.error);
+            QuizMaster.showNotification(result.error, 'error');
+            // Reset next button
+            nextBtn.innerHTML = 'Next →';
+            nextBtn.disabled = false;
+            return;
+        }
+        
+        // Show result
+        showAnswerResult(result);
+        
+        // Update score
+        score = result.score;
+        document.getElementById('current-score').textContent = score;
+        
+        // Move to next question after delay
+        setTimeout(() => {
+            currentQuestion++;
+            console.log(`Moving to question ${currentQuestion + 1} of ${totalQuestions}`);
+            
+            if (currentQuestion >= totalQuestions) {
+                console.log('Quiz finished, redirecting to results');
+                finishQuiz();
+            } else {
+                console.log('Loading next question');
+                // Reset selected answer before loading next question
+                selectedAnswer = null;
+                loadQuestion(currentQuestion);
+                updateNavigationButtons();
+            }
+        }, 1000); // Reduced to 1 second for faster progression
+        
+    } catch (error) {
+        console.error('Error submitting answer:', error);
+        QuizMaster.showNotification('Error submitting answer: ' + error.message, 'error');
+        
+        // Reset next button
+        nextBtn.innerHTML = 'Next →';
+        nextBtn.disabled = false;
+    }
+}
+
+function showAnswerResult(result) {
+    const options = document.querySelectorAll('.option-btn');
+    
+    options.forEach(btn => {
+        btn.disabled = true;
+        const btnText = btn.querySelector('span:last-child').textContent;
+        
+        if (btnText === result.correct_answer) {
+            btn.classList.add('correct');
+            // Add checkmark
+            btn.querySelector('span:first-child').innerHTML = '✓';
+            btn.querySelector('span:first-child').style.background = '#28a745';
+            btn.querySelector('span:first-child').style.color = 'white';
+        } else if (btn.classList.contains('selected') && !result.correct) {
+            btn.classList.add('incorrect');
+            // Add X mark
+            btn.querySelector('span:first-child').innerHTML = '✗';
+            btn.querySelector('span:first-child').style.background = '#dc3545';
+            btn.querySelector('span:first-child').style.color = 'white';
+        }
+    });
+    
+    // Show explanation
+    if (result.explanation) {
+        document.getElementById('explanation-text').textContent = result.explanation;
+        document.getElementById('explanation').classList.add('show');
+    }
+    
+    // Play sound and show notification
+    if (result.correct) {
+        if (QuizMaster.playSuccessSound) QuizMaster.playSuccessSound();
+        QuizMaster.showNotification('Correct! +10 points', 'success');
+    } else {
+        if (QuizMaster.playErrorSound) QuizMaster.playErrorSound();
+        QuizMaster.showNotification(`Incorrect. The answer was: ${result.correct_answer}`, 'error');
+    }
+}
+
+function previousQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestion(currentQuestion);
+        updateNavigationButtons();
+    }
+}
+
+function updateProgress(progress) {
+    document.getElementById('progress-bar').style.width = progress + '%';
+}
+
+function updateQuestionCounter(current, total) {
+    document.getElementById('question-counter').textContent = `Question ${current} of ${total}`;
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const finishBtn = document.getElementById('finish-btn');
+    
+    prevBtn.style.display = currentQuestion > 0 ? 'block' : 'none';
+    
+    if (currentQuestion === totalQuestions - 1) {
+        nextBtn.style.display = 'none';
+        finishBtn.style.display = 'block';
+    } else {
+        nextBtn.style.display = 'block';
+        finishBtn.style.display = 'none';
+    }
+}
+
+function finishQuiz() {
+    clearInterval(questionTimerInterval);
+    
+    if (QuizMaster.playAchievementSound) {
+        QuizMaster.playAchievementSound();
+    }
+    
+    QuizMaster.showNotification('Quiz completed! Calculating results...', 'success');
+    
+    setTimeout(() => {
+        window.location.href = '/quiz/results';
+    }, 1500);
+}
+
+// Prevent accidental page refresh
+window.addEventListener('beforeunload', function(e) {
+    if (currentQuestion < totalQuestions) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key >= '1' && e.key <= '4') {
+        const optionIndex = parseInt(e.key) - 1;
+        const options = document.querySelectorAll('.option-btn');
+        if (options[optionIndex] && !options[optionIndex].disabled) {
+            options[optionIndex].click();
+        }
+    } else if (e.key === 'Enter' && selectedAnswer) {
+        if (currentQuestion === totalQuestions - 1) {
+            finishQuiz();
+        } else {
+            nextQuestion();
+        }
+    }
+});
+</script>
+{% endblock %}

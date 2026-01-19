@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QuizMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    
+    <!-- Welcome Header -->
+    <div class="dashboard-header" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); color: #2c3e50; padding: 2rem; border-radius: 20px; text-align: center; margin-bottom: 2rem; box-shadow: var(--shadow);">
+        <div class="user-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; margin: 0 auto 1rem;">
+            {{ session.username[0].upper() }}
+        </div>
+        <h1 style="margin-bottom: 0.5rem; color: #2c3e50; font-size: 2.5rem; font-weight: bold;">
+            Welcome back, {{ session.username }}! 🎮
+        </h1>
+        <p style="color: #666; font-size: 1.1rem;">
+            Ready to challenge your mind today?
+        </p>
+    </div>
+
+    <!-- User Stats -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="stat-card" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 15px; text-align: center; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="stat-number" style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.5rem;">{{ user.total_score or 0 }}</div>
+            <div class="stat-label" style="color: #666; font-size: 0.9rem;">🏆 Total Score</div>
+        </div>
+        <div class="stat-card" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 15px; text-align: center; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="stat-number" style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.5rem;">{{ user.games_played or 0 }}</div>
+            <div class="stat-label" style="color: #666; font-size: 0.9rem;">🎯 Games Played</div>
+        </div>
+        <div class="stat-card" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 15px; text-align: center; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="stat-number" style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.5rem;">{{ user.best_streak or 0 }}</div>
+            <div class="stat-label" style="color: #666; font-size: 0.9rem;">🔥 Best Streak</div>
+        </div>
+        <div class="stat-card" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 15px; text-align: center; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="stat-number" style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.5rem;">{{ achievements|selectattr('earned_at')|list|length }}</div>
+            <div class="stat-label" style="color: #666; font-size: 0.9rem;">🎖️ Achievements</div>
+        </div>
+    </div>
+
+    <!-- Quick Start Quizzes -->
+    <div class="card" style="margin: 2rem 0; text-align: center; background: rgba(255, 255, 255, 0.95); color: #2c3e50;">
+        <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">🚀 Quick Start - All Quizzes Available</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <a href="/quiz/1" class="btn btn-primary">
+                🧪 Science Quiz
+            </a>
+            <a href="/quiz/2" class="btn btn-secondary">
+                💻 Programming Quiz
+            </a>
+            <a href="/quiz/3" class="btn btn-success">
+                🧠 General Knowledge
+            </a>
+            <a href="/quiz/4" class="btn btn-warning">
+                🏛️ History Quiz
+            </a>
+            <a href="/quiz/5" class="btn" style="background: var(--danger); color: white;">
+                ⚽ Sports Quiz
+            </a>
+            <a href="/quiz/6" class="btn" style="background: #FF5722; color: white;">
+                🍕 Food & Culture
+            </a>
+            <a href="/quiz/7" class="btn" style="background: #E91E63; color: white;">
+                🎬 Movies Quiz
+            </a>
+            <a href="/quiz/8" class="btn" style="background: #795548; color: white;">
+                🎵 Music & Arts
+            </a>
+        </div>
+        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+            Each quiz has 5-10 random questions with 30 seconds per question
+        </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="margin: 2rem 0; text-align: center;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);">🚀 Quick Start</h2>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button onclick="window.location.href='/random-quiz'" class="btn btn-primary">
+                🎲 Random Quiz
+            </button>
+            <button onclick="showCategories()" class="btn btn-secondary">
+                📚 Browse Categories
+            </button>
+            <button onclick="showLeaderboard()" class="btn btn-success">
+                🏆 Leaderboard
+            </button>
+            <button onclick="showAchievements()" class="btn btn-warning">
+                🎖️ Achievements
+            </button>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div id="categories-section">
+        <div class="card" style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="margin-bottom: 1rem; background: var(--secondary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                🎯 Choose Your Challenge
+            </h2>
+            <p style="color: #666;">
+                Select a category and test your knowledge
+            </p>
+        </div>
+
+        <div class="categories-grid">
+            {% for category in categories %}
+            <div class="category-card">
+                <span class="category-icon">{{ category.icon }}</span>
+                <h3 class="category-name">{{ category.name }}</h3>
+                <p class="category-description">{{ category.description }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                    <span class="quiz-count">{{ category.quiz_count }} Questions</span>
+                    <a href="/category/{{ category.name|replace(' ', '%20') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem; text-decoration: none;">
+                        Play Now
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Games -->
+    {% if recent_games %}
+    <div class="card" style="margin: 3rem 0;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);">📈 Recent Games</h2>
+        <div style="display: grid; gap: 1rem;">
+            {% for game in recent_games %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 1.5rem;">{{ game.icon }}</span>
+                    <div>
+                        <h4 style="margin: 0; color: var(--dark);">{{ game.title }}</h4>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">{{ game.category_name }}</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; color: var(--dark);">{{ game.score }} pts</div>
+                    <div style="font-size: 0.8rem; color: #666;">{{ game.correct_answers }}/{{ game.total_questions }} correct</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Achievements Section -->
+    <div class="card" style="margin: 3rem 0;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);">🎖️ Achievements</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+            {% for achievement in achievements[:8] %}
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: {% if achievement.earned_at %}linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%){% else %}rgba(0,0,0,0.05){% endif %}; border-radius: 10px; {% if achievement.earned_at %}border-left: 4px solid #28a745;{% endif %}">
+                <span style="font-size: 2rem; {% if not achievement.earned_at %}opacity: 0.3;{% endif %}">{{ achievement.icon }}</span>
+                <div>
+                    <h4 style="margin: 0; color: var(--dark); {% if not achievement.earned_at %}opacity: 0.5;{% endif %}">{{ achievement.name }}</h4>
+                    <p style="margin: 0; color: #666; font-size: 0.8rem;">{{ achievement.description }}</p>
+                    {% if achievement.earned_at %}
+                    <p style="margin: 0; color: #28a745; font-size: 0.7rem; font-weight: bold;">✅ Earned!</p>
+                    {% else %}
+                    <p style="margin: 0; color: #666; font-size: 0.7rem;">🎯 {{ achievement.points_reward }} points</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if achievements|length > 8 %}
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <button onclick="showAllAchievements()" class="btn btn-secondary">
+                View All {{ achievements|length }} Achievements
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Daily Challenge -->
+    <div class="card" style="margin: 3rem 0; text-align: center; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid rgba(102, 126, 234, 0.2);">
+        <h2 style="margin-bottom: 1rem; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            🌟 Daily Challenge
+        </h2>
+        <p style="color: #666; margin-bottom: 2rem;">
+            Complete today's special challenge for bonus points!
+        </p>
+        <button onclick="startDailyChallenge()" class="btn btn-warning pulse">
+            🎯 Take Daily Challenge (+50 Bonus Points)
+        </button>
+    </div>
+
+</div>
+
+<script>
+function startRandomQuiz() {
+    QuizMaster.showNotification('Finding a random quiz for you...', 'info');
+    setTimeout(() => {
+        window.location.href = '/random-quiz';
+    }, 1000);
+}
+
+function startCategoryQuiz(category) {
+    QuizMaster.showNotification(`Loading ${category} quizzes...`, 'info');
+    // Navigate to category page
+    setTimeout(() => {
+        window.location.href = `/category/${encodeURIComponent(category)}`;
+    }, 1000);
+}
+
+function showCategories() {
+    document.getElementById('categories-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showLeaderboard() {
+    QuizMaster.showNotification('Leaderboard coming soon!', 'info');
+}
+
+function showAchievements() {
+    const achievementsSection = document.querySelector('.card:has(h2:contains("Achievements"))');
+    if (achievementsSection) {
+        achievementsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function showAllAchievements() {
+    QuizMaster.showNotification('Loading all achievements...', 'info');
+}
+
+function startDailyChallenge() {
+    QuizMaster.showNotification('Loading daily challenge...', 'info');
+    if (QuizMaster.playAchievementSound) {
+        setTimeout(() => {
+            QuizMaster.playAchievementSound();
+        }, 500);
+    }
+}
+
+// Animate stats on load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        QuizMaster.animateStats();
+    }, 500);
+    
+    // Add hover effects to category cards
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results - QuizMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0; max-width: 900px;">
+    
+    <!-- Results Header -->
+    <div class="card" style="text-align: center; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid rgba(102, 126, 234, 0.2);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">
+            {% if results.percentage >= 80 %}🏆
+            {% elif results.percentage >= 60 %}🥈
+            {% elif results.percentage >= 40 %}🥉
+            {% else %}📚{% endif %}
+        </div>
+        
+        <h1 style="margin-bottom: 1rem; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            {% if results.percentage >= 80 %}Excellent Work!
+            {% elif results.percentage >= 60 %}Good Job!
+            {% elif results.percentage >= 40 %}Not Bad!
+            {% else %}Keep Learning!{% endif %}
+        </h1>
+        
+        <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">
+            You completed <strong>{{ results.quiz_info.title }}</strong>
+        </p>
+
+        <!-- Score Circle -->
+        <div style="position: relative; width: 150px; height: 150px; margin: 2rem auto;">
+            <svg width="150" height="150" style="transform: rotate(-90deg);">
+                <circle cx="75" cy="75" r="65" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="8"/>
+                <circle cx="75" cy="75" r="65" fill="none" stroke="url(#gradient)" stroke-width="8" 
+                        stroke-dasharray="{{ (results.percentage / 100) * 408 }} 408" 
+                        stroke-linecap="round" style="transition: stroke-dasharray 2s ease-in-out;"/>
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#667eea"/>
+                        <stop offset="100%" style="stop-color:#764ba2"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    {{ "%.0f"|format(results.percentage) }}%
+                </div>
+                <div style="font-size: 0.9rem; color: #666;">Score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" style="margin: 2rem 0;">
+        <div class="stat-card">
+            <div class="stat-number">{{ results.score }}</div>
+            <div class="stat-label">🏆 Points Earned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ results.correct_answers }}/{{ results.total_questions }}</div>
+            <div class="stat-label">✅ Correct Answers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ results.time_taken // 60 }}:{{ "%02d"|format(results.time_taken % 60) }}</div>
+            <div class="stat-label">⏱️ Time Taken</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ results.quiz_info.category_name }}</div>
+            <div class="stat-label">📚 Category</div>
+        </div>
+    </div>
+
+    <!-- Performance Analysis -->
+    <div class="card" style="margin: 2rem 0;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);">📊 Performance Analysis</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">
+                    {% if results.percentage >= 90 %}🌟
+                    {% elif results.percentage >= 80 %}⭐
+                    {% elif results.percentage >= 70 %}🔥
+                    {% elif results.percentage >= 60 %}👍
+                    {% elif results.percentage >= 50 %}📈
+                    {% else %}💪{% endif %}
+                </div>
+                <h3 style="margin-bottom: 0.5rem; color: var(--dark);">
+                    {% if results.percentage >= 90 %}Outstanding!
+                    {% elif results.percentage >= 80 %}Excellent!
+                    {% elif results.percentage >= 70 %}Very Good!
+                    {% elif results.percentage >= 60 %}Good!
+                    {% elif results.percentage >= 50 %}Fair
+                    {% else %}Needs Improvement{% endif %}
+                </h3>
+                <p style="color: #666; font-size: 0.9rem;">
+                    {% if results.percentage >= 90 %}You're a true master of this topic!
+                    {% elif results.percentage >= 80 %}Great knowledge in this area!
+                    {% elif results.percentage >= 70 %}Solid understanding shown!
+                    {% elif results.percentage >= 60 %}Good grasp of the basics!
+                    {% elif results.percentage >= 50 %}Room for improvement, keep studying!
+                    {% else %}Consider reviewing this topic more.{% endif %}
+                </p>
+            </div>
+
+            <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">
+                    {% if results.time_taken < 120 %}⚡
+                    {% elif results.time_taken < 300 %}🏃
+                    {% else %}🐢{% endif %}
+                </div>
+                <h3 style="margin-bottom: 0.5rem; color: var(--dark);">
+                    {% if results.time_taken < 120 %}Speed Demon!
+                    {% elif results.time_taken < 300 %}Good Pace
+                    {% else %}Take Your Time{% endif %}
+                </h3>
+                <p style="color: #666; font-size: 0.9rem;">
+                    {% if results.time_taken < 120 %}Lightning fast completion!
+                    {% elif results.time_taken < 300 %}Balanced speed and accuracy.
+                    {% else %}Careful consideration of answers.{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Review -->
+    <div class="card" style="margin: 2rem 0;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);">📝 Question Review</h2>
+        
+        <div style="display: grid; gap: 1rem;">
+            {% for answer in results.answers %}
+            <div style="padding: 1rem; border-radius: 10px; border-left: 4px solid {% if answer.correct %}#28a745{% else %}#dc3545{% endif %}; background: {% if answer.correct %}rgba(40, 167, 69, 0.1){% else %}rgba(220, 53, 69, 0.1){% endif %};">
+                <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <span style="font-size: 1.5rem; margin-right: 1rem;">
+                        {% if answer.correct %}✅{% else %}❌{% endif %}
+                    </span>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--dark);">Question {{ loop.index }}</h4>
+                        <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.9rem;">
+                            <strong>Your answer:</strong> {{ answer.answer }}
+                        </p>
+                        {% if not answer.correct %}
+                        <p style="margin: 0 0 0.5rem 0; color: #28a745; font-size: 0.9rem;">
+                            <strong>Correct answer:</strong> {{ answer.correct_answer }}
+                        </p>
+                        {% endif %}
+                        {% if answer.explanation %}
+                        <p style="margin: 0; color: #666; font-size: 0.8rem; font-style: italic;">
+                            💡 {{ answer.explanation }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 3rem 0;">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            🏠 Back to Dashboard
+        </a>
+        <button onclick="retakeQuiz()" class="btn btn-secondary">
+            🔄 Retake Quiz
+        </button>
+        <button onclick="shareResults()" class="btn btn-success">
+            📤 Share Results
+        </button>
+        <a href="{{ url_for('random_quiz') }}" class="btn btn-warning">
+            🎲 Try Another Quiz
+        </a>
+    </div>
+
+    <!-- Achievements Unlocked -->
+    {% if results.percentage == 100 %}
+    <div class="card" style="margin: 2rem 0; text-align: center; background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.2) 100%); border: 2px solid rgba(255, 193, 7, 0.5);">
+        <h2 style="margin-bottom: 1rem; color: #856404;">🎖️ Achievement Unlocked!</h2>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⭐</div>
+        <h3 style="color: #856404; margin-bottom: 0.5rem;">Perfect Score!</h3>
+        <p style="color: #856404;">You answered all questions correctly! Amazing work!</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function retakeQuiz() {
+    if (confirm('Are you sure you want to retake this quiz? Your current score will be replaced.')) {
+        window.location.href = '/quiz/{{ results.quiz_info.id if results.quiz_info.id else 1 }}';
+    }
+}
+
+function shareResults() {
+    const text = `I just scored ${Math.round({{ results.percentage }})}% on "${{{ results.quiz_info.title }}}" quiz on QuizMaster Pro! 🎮`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'QuizMaster Pro Results',
+            text: text,
+            url: window.location.href
+        });
+    } else {
+        // Fallback - copy to clipboard
+        navigator.clipboard.writeText(text).then(() => {
+            QuizMaster.showNotification('Results copied to clipboard!', 'success');
+        });
+    }
+}
+
+// Animate the score circle on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Trigger circle animation
+    const circle = document.querySelector('circle[stroke-dasharray]');
+    if (circle) {
+        circle.style.strokeDasharray = '0 408';
+        setTimeout(() => {
+            circle.style.strokeDasharray = '{{ (results.percentage / 100) * 408 }} 408';
+        }, 500);
+    }
+    
+    // Play achievement sound for good scores
+    {% if results.percentage >= 80 %}
+    if (QuizMaster.playAchievementSound) {
+        setTimeout(() => {
+            QuizMaster.playAchievementSound();
+        }, 1000);
+    }
+    {% endif %}
+    
+    // Show congratulations notification
+    setTimeout(() => {
+        {% if results.percentage >= 90 %}
+        QuizMaster.showNotification('Outstanding performance! 🌟', 'success');
+        {% elif results.percentage >= 70 %}
+        QuizMaster.showNotification('Great job! Keep it up! 🎉', 'success');
+        {% elif results.percentage >= 50 %}
+        QuizMaster.showNotification('Good effort! Room for improvement! 📚', 'info');
+        {% else %}
+        QuizMaster.showNotification('Keep practicing! You\'ll get better! 💪', 'info');
+        {% endif %}
+    }, 1500);
+});
+</script>
+{% endblock %}
