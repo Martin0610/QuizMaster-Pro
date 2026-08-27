@@ -911,10 +911,8 @@ def auth():
             conn.commit()
             conn.close()
             
-            session['user_id'] = user_id
-            session['username'] = username
-            flash(f'Welcome to QuizMaster Pro, {username}!', 'success')
-            return redirect(url_for('dashboard'))
+            flash('Account created successfully! Please log in to continue.', 'success')
+            return redirect(url_for('auth'))
         
         elif action == 'login':
             username = request.form.get('username')
