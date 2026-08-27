@@ -134,7 +134,7 @@ def init_db():
     
     conn.commit()
     conn.close()
-    print("✅ Database initialized!")
+    print("[OK] Database initialized!")
 
 def seed_data():
     """Add sample data to the database"""
@@ -733,7 +733,7 @@ def seed_data():
     
     conn.commit()
     conn.close()
-    print("✅ Sample data added!")
+    print("[OK] Sample data added!")
 
 def login_required(f):
     @wraps(f)
@@ -1138,12 +1138,10 @@ if not os.path.exists(DATABASE):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("  🎮 QuizMaster Pro - Advanced Quiz Platform")
+    print("  QuizMaster Pro - Minimalist Quiz Platform")
     print("="*60)
-    print("\n  🌐 Access at: http://localhost:5000")
-    print("  🎯 Features: Quizzes, Leaderboards, Achievements")
-    print("  🎨 Beautiful UI with animations and effects")
-    print("  📱 Mobile-responsive design")
+    print("\n  Access at: http://localhost:5000")
+    print("  Minimalist UI, low resource footprint")
     print("\n" + "="*60 + "\n")
     
     port = int(os.environ.get('PORT', 5000))
