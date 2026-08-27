@@ -156,7 +156,9 @@ def seed_data():
         ('Food & Culture', '🍕', '#FF5722', 'Delicious questions about food and culture'),
         ('Programming', '💻', '#9C27B0', 'Code your way through these programming challenges'),
         ('General Knowledge', '🧠', '#607D8B', 'A mix of everything - the ultimate brain test'),
-        ('Music & Arts', '🎵', '#795548', 'Harmonize with questions about music and arts')
+        ('Music & Arts', '🎵', '#795548', 'Harmonize with questions about music and arts'),
+        ('Space & Astronomy', '🚀', '#3B82F6', 'Explore the solar system, stars, galaxies, and the cosmos'),
+        ('Nature & Wildlife', '🌿', '#10B981', 'Discover fascinating animals, plant biology, and ecosystems')
     ]
     
     category_ids = {}
@@ -682,6 +684,82 @@ def seed_data():
                     'explanation': 'Michelangelo sculpted the famous statue of David between 1501-1504.'
                 }
             ]
+        },
+        {
+            'category': 'Space & Astronomy',
+            'title': 'Space Exploration Quiz',
+            'description': 'Test your knowledge of the universe and cosmos',
+            'difficulty': 'Medium',
+            'questions': [
+                {
+                    'question': 'Which is the largest planet in our solar system?',
+                    'correct': 'Jupiter',
+                    'options': ['Jupiter', 'Saturn', 'Neptune', 'Uranus'],
+                    'explanation': 'Jupiter is more than twice as massive as all other planets combined.'
+                },
+                {
+                    'question': 'What is the name of our home spiral galaxy?',
+                    'correct': 'Milky Way',
+                    'options': ['Milky Way', 'Andromeda', 'Triangulum', 'Sombrero'],
+                    'explanation': 'The Milky Way contains over 100 billion stars including our Solar System.'
+                },
+                {
+                    'question': 'Who was the first human to journey into outer space?',
+                    'correct': 'Yuri Gagarin',
+                    'options': ['Yuri Gagarin', 'Neil Armstrong', 'Buzz Aldrin', 'John Glenn'],
+                    'explanation': 'Soviet cosmonaut Yuri Gagarin orbited Earth on April 12, 1961.'
+                },
+                {
+                    'question': 'What is the point of no return around a black hole called?',
+                    'correct': 'Event Horizon',
+                    'options': ['Event Horizon', 'Singularity', 'Photon Sphere', 'Accretion Disk'],
+                    'explanation': 'The event horizon is the boundary beyond which nothing, not even light, can escape.'
+                },
+                {
+                    'question': 'Approximately how long does sunlight take to reach Earth?',
+                    'correct': '8 minutes',
+                    'options': ['8 minutes', '8 seconds', '8 hours', 'Instantaneous'],
+                    'explanation': 'Sunlight travels 150 million km in roughly 8 minutes and 20 seconds.'
+                }
+            ]
+        },
+        {
+            'category': 'Nature & Wildlife',
+            'title': 'Wildlife & Nature Quiz',
+            'description': 'Test your knowledge of the natural world and wildlife',
+            'difficulty': 'Easy',
+            'questions': [
+                {
+                    'question': 'What is the largest living animal on planet Earth?',
+                    'correct': 'Blue Whale',
+                    'options': ['Blue Whale', 'African Elephant', 'Colossal Squid', 'Giraffe'],
+                    'explanation': 'The blue whale can weigh up to 200 tons and reach 30 meters in length.'
+                },
+                {
+                    'question': 'Which is the only mammal capable of true sustained flight?',
+                    'correct': 'Bat',
+                    'options': ['Bat', 'Flying Squirrel', 'Sugar Glider', 'Colugo'],
+                    'explanation': 'Bats are the only mammals capable of sustained powered flight.'
+                },
+                {
+                    'question': 'Which process allows green plants to produce oxygen from sunlight?',
+                    'correct': 'Photosynthesis',
+                    'options': ['Photosynthesis', 'Respiration', 'Transpiration', 'Fermentation'],
+                    'explanation': 'Photosynthesis converts solar energy, water, and CO2 into glucose and oxygen.'
+                },
+                {
+                    'question': 'Which bird is famously capable of flying backwards?',
+                    'correct': 'Hummingbird',
+                    'options': ['Hummingbird', 'Kingfisher', 'Swallow', 'Falcon'],
+                    'explanation': 'Hummingbirds possess flexible ball-and-socket shoulder joints allowing 180-degree rotation.'
+                },
+                {
+                    'question': 'How many hearts does an octopus have?',
+                    'correct': '3',
+                    'options': ['3', '1', '2', '4'],
+                    'explanation': 'An octopus has three hearts: two pump blood to gills, one to the body.'
+                }
+            ]
         }
     ]
     
@@ -1131,10 +1209,140 @@ def random_quiz():
         flash('No quizzes available', 'warning')
         return redirect(url_for('dashboard'))
 
+def ensure_latest_categories():
+    """Ensure all 10 categories, quizzes, and questions exist in database"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    additional_categories = [
+        ('Space & Astronomy', '🚀', '#3B82F6', 'Explore the solar system, stars, galaxies, and the cosmos'),
+        ('Nature & Wildlife', '🌿', '#10B981', 'Discover fascinating animals, plant biology, and ecosystems')
+    ]
+    
+    new_quizzes = [
+        {
+            'category': 'Space & Astronomy',
+            'title': 'Space Exploration Quiz',
+            'description': 'Test your knowledge of the universe and cosmos',
+            'difficulty': 'Medium',
+            'questions': [
+                {
+                    'question': 'Which is the largest planet in our solar system?',
+                    'correct': 'Jupiter',
+                    'options': ['Jupiter', 'Saturn', 'Neptune', 'Uranus'],
+                    'explanation': 'Jupiter is more than twice as massive as all other planets combined.'
+                },
+                {
+                    'question': 'What is the name of our home spiral galaxy?',
+                    'correct': 'Milky Way',
+                    'options': ['Milky Way', 'Andromeda', 'Triangulum', 'Sombrero'],
+                    'explanation': 'The Milky Way contains over 100 billion stars including our Solar System.'
+                },
+                {
+                    'question': 'Who was the first human to journey into outer space?',
+                    'correct': 'Yuri Gagarin',
+                    'options': ['Yuri Gagarin', 'Neil Armstrong', 'Buzz Aldrin', 'John Glenn'],
+                    'explanation': 'Soviet cosmonaut Yuri Gagarin orbited Earth on April 12, 1961.'
+                },
+                {
+                    'question': 'What is the point of no return around a black hole called?',
+                    'correct': 'Event Horizon',
+                    'options': ['Event Horizon', 'Singularity', 'Photon Sphere', 'Accretion Disk'],
+                    'explanation': 'The event horizon is the boundary beyond which nothing, not even light, can escape.'
+                },
+                {
+                    'question': 'Approximately how long does sunlight take to reach Earth?',
+                    'correct': '8 minutes',
+                    'options': ['8 minutes', '8 seconds', '8 hours', 'Instantaneous'],
+                    'explanation': 'Sunlight travels 150 million km in roughly 8 minutes and 20 seconds.'
+                }
+            ]
+        },
+        {
+            'category': 'Nature & Wildlife',
+            'title': 'Wildlife & Nature Quiz',
+            'description': 'Test your knowledge of the natural world and wildlife',
+            'difficulty': 'Easy',
+            'questions': [
+                {
+                    'question': 'What is the largest living animal on planet Earth?',
+                    'correct': 'Blue Whale',
+                    'options': ['Blue Whale', 'African Elephant', 'Colossal Squid', 'Giraffe'],
+                    'explanation': 'The blue whale can weigh up to 200 tons and reach 30 meters in length.'
+                },
+                {
+                    'question': 'Which is the only mammal capable of true sustained flight?',
+                    'correct': 'Bat',
+                    'options': ['Bat', 'Flying Squirrel', 'Sugar Glider', 'Colugo'],
+                    'explanation': 'Bats are the only mammals capable of sustained powered flight.'
+                },
+                {
+                    'question': 'Which process allows green plants to produce oxygen from sunlight?',
+                    'correct': 'Photosynthesis',
+                    'options': ['Photosynthesis', 'Respiration', 'Transpiration', 'Fermentation'],
+                    'explanation': 'Photosynthesis converts solar energy, water, and CO2 into glucose and oxygen.'
+                },
+                {
+                    'question': 'Which bird is famously capable of flying backwards?',
+                    'correct': 'Hummingbird',
+                    'options': ['Hummingbird', 'Kingfisher', 'Swallow', 'Falcon'],
+                    'explanation': 'Hummingbirds possess flexible ball-and-socket shoulder joints allowing 180-degree rotation.'
+                },
+                {
+                    'question': 'How many hearts does an octopus have?',
+                    'correct': '3',
+                    'options': ['3', '1', '2', '4'],
+                    'explanation': 'An octopus has three hearts: two pump blood to gills, one to the body.'
+                }
+            ]
+        }
+    ]
+    
+    for cat_name, icon, color, desc in additional_categories:
+        cursor.execute('SELECT id FROM categories WHERE name = ?', (cat_name,))
+        row = cursor.fetchone()
+        if not row:
+            cursor.execute('''
+                INSERT INTO categories (name, icon, color, description)
+                VALUES (?, ?, ?, ?)
+            ''', (cat_name, icon, color, desc))
+            cat_id = cursor.lastrowid
+        else:
+            cat_id = row['id']
+            
+        for quiz_info in new_quizzes:
+            if quiz_info['category'] == cat_name:
+                cursor.execute('SELECT id FROM quizzes WHERE title = ?', (quiz_info['title'],))
+                if not cursor.fetchone():
+                    cursor.execute('''
+                        INSERT INTO quizzes (title, description, category_id, difficulty, time_limit, created_by, is_public)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (quiz_info['title'], quiz_info['description'], cat_id, quiz_info['difficulty'], 300, 1, 1))
+                    quiz_id = cursor.lastrowid
+                    
+                    for q in quiz_info['questions']:
+                        cursor.execute('''
+                            INSERT INTO questions (quiz_id, question_text, correct_answer, option_a, option_b, option_c, option_d, explanation)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (quiz_id, q['question'], q['correct'], q['options'][0], q['options'][1], q['options'][2], q['options'][3], q['explanation']))
+
+    cursor.execute('''
+        UPDATE categories SET question_count = (
+            SELECT COUNT(q.id) 
+            FROM questions q 
+            JOIN quizzes qz ON q.quiz_id = qz.id 
+            WHERE qz.category_id = categories.id
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 # Initialize database on startup
 if not os.path.exists(DATABASE):
     init_db()
     seed_data()
+else:
+    ensure_latest_categories()
 
 if __name__ == '__main__':
     print("\n" + "="*60)
