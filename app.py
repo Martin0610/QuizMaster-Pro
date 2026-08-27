@@ -14,12 +14,134 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'quizmaster-pro-2026'
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+IS_POSTGRES = bool(DATABASE_URL)
+
+if IS_POSTGRES:
+    import psycopg2
+
+class RowWrapper:
+    """Unified dictionary and index row wrapper compatible with both SQLite and Postgres"""
+    def __init__(self, data, columns):
+        self._data = data
+        self._columns = {col: i for i, col in enumerate(columns)}
+        self._cols_list = list(columns)
+        
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._data[key]
+        idx = self._columns.get(key)
+        if idx is not None:
+            return self._data[idx]
+        raise KeyError(key)
+        
+    def get(self, key, default=None):
+        idx = self._columns.get(key)
+        if idx is not None:
+            return self._data[idx]
+        return default
+        
+    def keys(self):
+        return self._cols_list
+        
+    def __iter__(self):
+        return iter(self._cols_list)
+
+class UniversalCursor:
+    def __init__(self, cursor, is_postgres=False):
+        self.cursor = cursor
+        self.is_postgres = is_postgres
+        self.lastrowid = None
+
+    def execute(self, query, params=None):
+        if self.is_postgres:
+            adapted_query = query.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+            adapted_query = adapted_query.replace('?', '%s')
+            
+            is_insert = adapted_query.strip().upper().startswith('INSERT INTO')
+            needs_returning = is_insert and 'RETURNING' not in adapted_query.upper()
+            
+            if needs_returning:
+                adapted_query = adapted_query.rstrip().rstrip(';') + ' RETURNING id;'
+                
+            if params is not None:
+                self.cursor.execute(adapted_query, params)
+            else:
+                self.cursor.execute(adapted_query)
+                
+            if needs_returning:
+                try:
+                    row = self.cursor.fetchone()
+                    if row:
+                        self.lastrowid = row[0]
+                except Exception:
+                    self.lastrowid = None
+            else:
+                self.lastrowid = getattr(self.cursor, 'lastrowid', None)
+            return self
+        else:
+            if params is not None:
+                res = self.cursor.execute(query, params)
+            else:
+                res = self.cursor.execute(query)
+            self.lastrowid = self.cursor.lastrowid
+            return res
+
+    def fetchone(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        if self.is_postgres:
+            cols = [desc[0] for desc in self.cursor.description]
+            return RowWrapper(row, cols)
+        return row
+
+    def fetchall(self):
+        rows = self.cursor.fetchall()
+        if not rows:
+            return []
+        if self.is_postgres:
+            cols = [desc[0] for desc in self.cursor.description]
+            return [RowWrapper(row, cols) for row in rows]
+        return rows
+
+    def close(self):
+        self.cursor.close()
+
+class UniversalConnection:
+    def __init__(self, conn, is_postgres=False):
+        self.conn = conn
+        self.is_postgres = is_postgres
+
+    def cursor(self):
+        return UniversalCursor(self.conn.cursor(), is_postgres=self.is_postgres)
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
+
+    def close(self):
+        self.conn.close()
+
+    def execute(self, query, params=None):
+        cur = self.cursor()
+        return cur.execute(query, params)
+
 DATABASE = 'quizmaster.db'
 
 def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if IS_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL)
+        return UniversalConnection(conn, is_postgres=True)
+    else:
+        conn = sqlite3.connect(DATABASE)
+        conn.row_factory = sqlite3.Row
+        return UniversalConnection(conn, is_postgres=False)
 
 def init_db():
     conn = get_db()
@@ -63,7 +185,7 @@ def init_db():
             difficulty TEXT DEFAULT 'Medium',
             time_limit INTEGER DEFAULT 300,
             created_by INTEGER,
-            is_public BOOLEAN DEFAULT 1,
+            is_public INTEGER DEFAULT 1,
             plays_count INTEGER DEFAULT 0,
             average_score REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1159,11 +1281,16 @@ def ensure_core_categories():
     conn.close()
 
 # Initialize database on startup
-if not os.path.exists(DATABASE):
+if IS_POSTGRES:
     init_db()
     seed_data()
-else:
     ensure_core_categories()
+else:
+    if not os.path.exists(DATABASE):
+        init_db()
+        seed_data()
+    else:
+        ensure_core_categories()
 
 if __name__ == '__main__':
     print("\n" + "="*60)
