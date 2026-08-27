@@ -263,8 +263,8 @@ def seed_data():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Check if data already exists
-    cursor.execute('SELECT COUNT(*) FROM categories')
+    # Check if quizzes already exist
+    cursor.execute('SELECT COUNT(*) FROM quizzes')
     if cursor.fetchone()[0] > 0:
         conn.close()
         return
@@ -283,11 +283,16 @@ def seed_data():
     
     category_ids = {}
     for name, icon, color, desc in categories:
-        cursor.execute('''
-            INSERT INTO categories (name, icon, color, description)
-            VALUES (?, ?, ?, ?)
-        ''', (name, icon, color, desc))
-        category_ids[name] = cursor.lastrowid
+        cursor.execute('SELECT id FROM categories WHERE name = ?', (name,))
+        cat_row = cursor.fetchone()
+        if cat_row:
+            category_ids[name] = cat_row[0]
+        else:
+            cursor.execute('''
+                INSERT INTO categories (name, icon, color, description)
+                VALUES (?, ?, ?, ?)
+            ''', (name, icon, color, desc))
+            category_ids[name] = cursor.lastrowid
     
     # Add sample quizzes and questions
     quiz_data = [
@@ -813,7 +818,7 @@ def seed_data():
             INSERT INTO quizzes (title, description, category_id, difficulty, time_limit, created_by, is_public)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (quiz_info['title'], quiz_info['description'], category_ids[quiz_info['category']], 
-              quiz_info['difficulty'], 300, 1, 1))
+              quiz_info['difficulty'], 300, None, 1))
         
         quiz_id = cursor.lastrowid
         
