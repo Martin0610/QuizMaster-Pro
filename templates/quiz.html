@@ -52,14 +52,8 @@
             Question 1 of {{ questions|length }}
         </span>
         <div style="display: flex; gap: 0.5rem;">
-            <button id="prev-btn" class="btn btn-secondary" onclick="previousQuestion()" style="display: none;">
-                ← Prev
-            </button>
             <button id="next-btn" class="btn btn-primary" onclick="nextQuestion();" disabled>
                 Next →
-            </button>
-            <button id="finish-btn" class="btn btn-success" onclick="finishQuiz()" style="display: none;">
-                ✓ Finish Quiz
             </button>
         </div>
     </div>
@@ -89,10 +83,8 @@ function startQuestionTimer() {
         
         if (questionTimeLeft <= 0) {
             clearInterval(questionTimerInterval);
-            if (!selectedAnswer) {
-                QuizMaster.showNotification('Time up for this question', 'warning');
-                setTimeout(() => nextQuestion(), 800);
-            }
+            QuizMaster.showNotification('Time up for this question', 'warning');
+            setTimeout(() => nextQuestion(), 500);
         }
     }, 1000);
 }
@@ -156,10 +148,7 @@ function displayQuestion(data) {
     document.getElementById('question-content').innerHTML = questionHTML;
     
     selectedAnswer = null;
-    const nextBtn = document.getElementById('next-btn');
-    nextBtn.disabled = true;
-    nextBtn.innerHTML = 'Next →';
-    nextBtn.style.display = 'block';
+    updateNavigationButton();
     
     const explanation = document.getElementById('explanation');
     if (explanation) explanation.classList.remove('show');
@@ -170,6 +159,18 @@ function selectAnswer(answer, button) {
     button.classList.add('selected');
     selectedAnswer = answer;
     document.getElementById('next-btn').disabled = false;
+}
+
+function updateNavigationButton() {
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.disabled = !selectedAnswer;
+    if (currentQuestion === totalQuestions - 1) {
+        nextBtn.innerHTML = 'Finish Quiz ✓';
+        nextBtn.className = 'btn btn-success';
+    } else {
+        nextBtn.innerHTML = 'Next →';
+        nextBtn.className = 'btn btn-primary';
+    }
 }
 
 async function nextQuestion() {
@@ -195,8 +196,7 @@ async function nextQuestion() {
         
         if (result.error) {
             QuizMaster.showNotification(result.error, 'error');
-            nextBtn.innerHTML = 'Next →';
-            nextBtn.disabled = false;
+            updateNavigationButton();
             return;
         }
         
@@ -211,14 +211,12 @@ async function nextQuestion() {
             } else {
                 selectedAnswer = null;
                 loadQuestion(currentQuestion);
-                updateNavigationButtons();
             }
         }, 850);
         
     } catch (error) {
         QuizMaster.showNotification('Error saving answer', 'error');
-        nextBtn.innerHTML = 'Next →';
-        nextBtn.disabled = false;
+        updateNavigationButton();
     }
 }
 
@@ -248,14 +246,6 @@ function showAnswerResult(result) {
     }
 }
 
-function previousQuestion() {
-    if (currentQuestion > 0) {
-        currentQuestion--;
-        loadQuestion(currentQuestion);
-        updateNavigationButtons();
-    }
-}
-
 function updateProgress(progress) {
     document.getElementById('progress-bar').style.width = progress + '%';
 }
@@ -264,28 +254,13 @@ function updateQuestionCounter(current, total) {
     document.getElementById('question-counter').textContent = `Question ${current} of ${total}`;
 }
 
-function updateNavigationButtons() {
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const finishBtn = document.getElementById('finish-btn');
-    
-    prevBtn.style.display = currentQuestion > 0 ? 'inline-flex' : 'none';
-    if (currentQuestion === totalQuestions - 1) {
-        nextBtn.style.display = 'none';
-        finishBtn.style.display = 'inline-flex';
-    } else {
-        nextBtn.style.display = 'inline-flex';
-        finishBtn.style.display = 'none';
-    }
-}
-
 function finishQuiz() {
     if (questionTimerInterval) clearInterval(questionTimerInterval);
     QuizMaster.playAchievementSound();
     window.location.href = '/quiz/results';
 }
 
-// Keyboard shortcuts (1-4 for options, Enter for next)
+// Keyboard shortcuts (1-4 for options, Enter for next/finish)
 document.addEventListener('keydown', function(e) {
     if (e.key >= '1' && e.key <= '4') {
         const optionIndex = parseInt(e.key, 10) - 1;
@@ -294,11 +269,7 @@ document.addEventListener('keydown', function(e) {
             options[optionIndex].click();
         }
     } else if (e.key === 'Enter' && selectedAnswer) {
-        if (currentQuestion === totalQuestions - 1) {
-            finishQuiz();
-        } else {
-            nextQuestion();
-        }
+        nextQuestion();
     }
 });
 </script>
