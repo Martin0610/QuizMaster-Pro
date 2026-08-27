@@ -6,7 +6,7 @@ An advanced quiz platform with beautiful UI/UX and comprehensive features.
 **Try it now:** https://quizmaster-pro-m77y.onrender.com/
 
 ## ✨ Features
-- 🧪 **10 Quiz Categories** - Science, Space & Astronomy, Nature & Wildlife, Programming, History, Sports, Food, Movies, Music, General Knowledge
+- 🧪 **8 Quiz Categories** - Science, Programming, History, Sports, Food, Movies, Music, General Knowledge
 - 👤 **User System** - Registration, login, profiles, and progress tracking
 - 🏆 **Achievements** - Unlock badges and track your quiz mastery
 - 📊 **Real-time Scoring** - Instant feedback with detailed explanations

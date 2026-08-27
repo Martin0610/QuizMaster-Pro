@@ -21,7 +21,6 @@
                 </a>
                 <div class="nav-links">
                     {% if session.user_id %}
-                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
                         <span style="font-size: 0.9rem; color: var(--text-muted);">{{ session.username }}</span>
                         <a href="{{ url_for('logout') }}" class="btn btn-sm btn-secondary">Logout</a>
                     {% else %}

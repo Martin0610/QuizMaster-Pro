@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - QuizMaster Pro{% endblock %}
+{% block title %}QuizMaster Pro{% endblock %}
 
 {% block content %}
 <div class="container" style="padding: 2rem 0;">
@@ -63,10 +63,9 @@
                 <span class="category-icon">{{ category.icon }}</span>
                 <h3 class="category-name">{{ category.name }}</h3>
                 <p class="category-description">{{ category.description }}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
-                    <span class="quiz-count">{{ category.quiz_count }} Questions</span>
-                    <a href="/category/{{ category.name|replace(' ', '%20') }}" class="btn btn-sm btn-secondary">
-                        Open →
+                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                    <a href="/category/{{ category.name|replace(' ', '%20') }}" class="btn btn-sm btn-primary" style="width: 100%; justify-content: center;">
+                        Play Quiz →
                     </a>
                 </div>
             </div>
